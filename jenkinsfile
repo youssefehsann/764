@@ -1,0 +1,21 @@
+pipeline {
+    agent {
+        label "docker"
+    }
+    stages {
+        stage ("build docker mage ") {
+            steps {
+                script {
+                    sh "docker build -t my-docker-image ."
+                }
+            }
+        }
+        stage ("run tests") {
+            steps {
+                script {
+                    sh "docker run -e CI=true my-docker-image npm run test"
+                }
+            }
+        }
+    }
+}
