@@ -1,30 +1,67 @@
 name: Deploy react 
+
 on: 
+
   push: 
+
     branches:
+
       - master
  
  
 jobs: 
+
   build: 
+
     runs-on: ubuntu-latest
+
     steps: 
+
       - uses: actions/checkout@v2
-      
-      # - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
       - run: docker build -t ehsooo/react-test -f Dockerfile.dev . 
+
       - run: docker run -e CI=true ehsooo/react-test npm run test
  
-      - name: Generate deployment package
-        run: zip -r deploy.zip . -x '*.git*'
+      - run: docker build -t ehsooo/multi-client ./microservices/client 
+
+      - run: docker build -t ehsooo/multi-server ./microservices/server 
+
+      - run: docker build -t ehsooo/multi-nginx ./microservices/nginx
+
+      - run: docker build -t ehsooo/multi-worker ./microservices/worker
  
-      - name: Deploy to EB
-        uses: einaregilsson/beanstalk-deploy@v22
-        with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: "ehsan"
-          environment_name: "Ehsan-env"
-          version_label: ${{ github.sha }}
-          region: eu-north-1
-          deployment_package: deploy.zip
+      - run: docker push ehsooo/multi-client
+
+      - run: docker push ehsooo/multi-server
+
+      - run: docker push ehsooo/multi-nginx
+
+      - run: docker push ehsooo/multi-worker
+ 
+      # - name: Generate deployment package
+
+      #   run: zip -r deploy.zip . -x '*.git*'
+ 
+      # - name: Deploy to EB
+
+      #   uses: einaregilsson/beanstalk-deploy@v22
+
+      #   with:
+
+      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+
+      #     aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      #     application_name: "ehsan"
+
+      #     environment_name: "Ehsan-env"
+
+      #     version_label: ${{ github.sha }}
+
+      #     region: us-east-1
+
+      #     deployment_package: deploy.zip
+ 
